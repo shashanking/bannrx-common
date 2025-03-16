@@ -33,6 +33,10 @@ public class Address extends Persist {
     @Column(name = "longitude")
     private Double longitude;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Override
     public String getPrefix() {
         return "AD";

@@ -24,6 +24,10 @@ public class BankDetails extends Persist {
     @Column(name = "verification_process_id")
     private String verificationProcessId;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Override
     public String getPrefix() {
         return "BD";

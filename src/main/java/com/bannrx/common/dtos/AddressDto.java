@@ -3,6 +3,7 @@ package com.bannrx.common.dtos;
 import com.bannrx.common.validationGroups.AddOrderValidationGroup;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 
@@ -27,13 +28,10 @@ public class AddressDto {
     @NotBlank(message = "Pin code cannot be empty")
     private String pincode;
 
-    @NotBlank(message = "Phone no should not be empty")
-    private String phoneNo;
-
-    @NotBlank(message = "Latitude can not be empty")
+    @NotNull(message = "Latitude can not be empty")
     private Double latitude;
 
-    @NotBlank(message = "Longitude can not be empty")
+    @NotNull(message = "Longitude can not be empty")
     private Double longitude;
     
     public boolean isAddressLine2Equal(String addressLine2){

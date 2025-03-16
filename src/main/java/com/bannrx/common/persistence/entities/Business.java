@@ -16,6 +16,7 @@ public class Business extends Persist {
     @Column(name = "name")
     private String name;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private BusinessType type;
 

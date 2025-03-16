@@ -1,16 +1,19 @@
 package com.bannrx.common.service;
 
 import com.bannrx.common.dtos.AddressDto;
+import com.bannrx.common.enums.Status;
 import com.bannrx.common.persistence.entities.Address;
 import com.bannrx.common.persistence.entities.User;
 import com.bannrx.common.repository.AddressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import rklab.utility.annotations.Loggable;
 import rklab.utility.expectations.InvalidInputException;
 import rklab.utility.expectations.ServerException;
 import rklab.utility.utilities.ObjectMapperUtils;
 
+import java.util.List;
 
 
 @Service
@@ -19,17 +22,19 @@ import rklab.utility.utilities.ObjectMapperUtils;
 public class AddressService {
 
     private static final String DELETE_MSG = "Address(s) has been deleted";
-
     private final AddressRepository addressRepository;
-    private final UserService userService;
 
 
-    public AddressDto addAddress(AddressDto addressDto) throws ServerException, InvalidInputException {
-        Address address = new Address();
-        User user = userService.findByPhoneNo(addressDto.getPhoneNo());
-        ObjectMapperUtils.map(addressDto,address);
-        addressRepository.save(address);
-        return ObjectMapperUtils.map(address, AddressDto.class);
+    @Transactional
+    public Address save(List<AddressDto> addressDtoList) throws ServerException {
+
+        for (var addressDto : addressDtoList) {
+            var retVal = ObjectMapperUtils.map(addressDto, Address.class);
+            retVal.setStatus(Status.ACTIVE);
+            return addressRepository.save(retVal);
+        }
+        throw new ServerException("You can add only one address");
+
     }
 
     public String delete(String id) throws ServerException {
