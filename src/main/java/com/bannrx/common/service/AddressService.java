@@ -1,16 +1,22 @@
 package com.bannrx.common.service;
 
 import com.bannrx.common.dtos.AddressDto;
+import com.bannrx.common.enums.Status;
 import com.bannrx.common.persistence.entities.Address;
 import com.bannrx.common.persistence.entities.User;
 import com.bannrx.common.repository.AddressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import rklab.utility.annotations.Loggable;
 import rklab.utility.expectations.InvalidInputException;
 import rklab.utility.expectations.ServerException;
 import rklab.utility.utilities.ObjectMapperUtils;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -19,17 +25,21 @@ import rklab.utility.utilities.ObjectMapperUtils;
 public class AddressService {
 
     private static final String DELETE_MSG = "Address(s) has been deleted";
-
     private final AddressRepository addressRepository;
-    private final UserService userService;
 
 
-    public AddressDto addAddress(AddressDto addressDto) throws ServerException, InvalidInputException {
-        Address address = new Address();
-        User user = userService.fetchByPhoneNo(addressDto.getPhoneNo());
-        ObjectMapperUtils.map(addressDto,address);
-        addressRepository.save(address);
-        return ObjectMapperUtils.map(address, AddressDto.class);
+    @Transactional
+    public Set<Address> save(List<AddressDto> addressDtoList, User user) throws ServerException {
+        Set<Address> addresses = new HashSet<>();
+
+        for(var dto : addressDtoList){
+            var address = ObjectMapperUtils.map(dto, Address.class);
+            address.setStatus(Status.ACTIVE);
+            address.setUser(user);
+            address = addressRepository.save(address);
+            addresses.add(address);
+        }
+        return addresses;
     }
 
     public String delete(String id) throws ServerException {
@@ -67,5 +77,25 @@ public class AddressService {
     public Address fetchById(String addressId) throws InvalidInputException {
         return addressRepository.findById(addressId).
                 orElseThrow(()->new InvalidInputException("Address not found with id "+addressId));
+    }
+
+    public Set<Address> toEntitySet(Set<AddressDto> addressDtoSet, User user) throws ServerException {
+        Set<Address> addressSet = new HashSet<>();
+        for(var dto : addressDtoSet){
+            var entity = ObjectMapperUtils.map(dto, Address.class);
+            entity.setUser(user);
+            addressSet.add(entity);
+        }
+        return addressSet;
+    }
+
+    public Set<AddressDto> toDto(Set<Address> addresses) throws ServerException {
+        Set<AddressDto> addressDtoSet = new HashSet<>();
+        for(var entity : addresses){
+            entity = addressRepository.save(entity);
+            var dto = ObjectMapperUtils.map(entity, AddressDto.class);
+            addressDtoSet.add(dto);
+        }
+        return addressDtoSet;
     }
 }

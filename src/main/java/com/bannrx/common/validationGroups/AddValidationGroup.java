@@ -1,4 +1,4 @@
 package com.bannrx.common.validationGroups;
 
-public interface AddOrderValidationGroup {
+public interface AddValidationGroup {
 }

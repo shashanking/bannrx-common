@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.bannrx"
-version = "base-0.0.1-SNAPSHOT"
+version = "addUser-0.0.1-SNAPSHOT"
 
 java {
 	toolchain {
@@ -87,7 +87,7 @@ dependencies {
 	if (env == "local"){
 		implementation(project(":utility"))
 	} else {
-		implementation("com.rklab:utility:0.0.1-SNAPSHOT")
+		implementation("com.rklab:utility:addUser-0.0.1-SNAPSHOT")
 	}
 	implementation("org.springframework.boot:spring-boot-starter-security:3.1.0")
 	implementation("org.springframework.security:spring-security-config:6.0.0")
@@ -96,6 +96,11 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-security")
+	testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.1")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.2")
+	testImplementation("org.mockito:mockito-core:5.14.2")
+	testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")
+
 }
 
 tasks.withType<Test> {

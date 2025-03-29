@@ -1,35 +1,83 @@
 package com.bannrx.common.service;
 
-import com.bannrx.common.dtos.RegisterUser;
+import com.bannrx.common.dtos.*;
 import com.bannrx.common.dtos.UserDto;
+import com.bannrx.common.persistence.entities.Address;
+import com.bannrx.common.persistence.entities.BankDetails;
 import com.bannrx.common.persistence.entities.User;
 import com.bannrx.common.repository.UserRepository;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import rklab.utility.annotations.Loggable;
 import rklab.utility.expectations.InvalidInputException;
 import rklab.utility.expectations.ServerException;
 import rklab.utility.utilities.ObjectMapperUtils;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
+
 
 @Service
 @Loggable
 @NoArgsConstructor
 public class UserService implements UserDetailsService {
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private BusinessService businessService;
+    @Autowired private BankDetailsService bankDetailsService;
+    @Autowired private AddressService addressService;
 
-    public User createUser(RegisterUser request) throws ServerException {
-        var retVal = ObjectMapperUtils.map(request, User.class);
-        retVal.setCreatedBy(retVal.getEmail());
-        retVal.setModifiedBy(retVal.getEmail());
-        return userRepository.save(retVal);
+
+    @Transactional
+    public UserDto createUser(SignUpRequest request) throws ServerException {
+        var user = ObjectMapperUtils.map(request, User.class);
+        var bankDetails = bankDetailsService.toEntitySet(request.getBankDetailsDtoSet(),user);
+        user.setBankDetails(bankDetails);
+        var addresses = addressService.toEntitySet(request.getAddressDtoSet(), user);
+        user.setAddresses(addresses);
+        var business = businessService.toEntity(request.getBusinessDto());
+        user.setBusiness(business);
+        user = userRepository.save(user);
+        var userDto = ObjectMapperUtils.map(user, UserDto.class);
+        var bankDtoSet = bankDetailsService.toDto(user.getBankDetails());
+        var addressDtoSet = addressService.toDto(user.getAddresses());
+        var businessDto = businessService.toDto(user.getBusiness());
+        user.setCreatedBy(user.getEmail());
+        user.setModifiedBy(user.getEmail());
+        userDto.setAddressDtoSet(addressDtoSet);
+        userDto.setBankDetailsDtoSet(bankDtoSet);
+        userDto.setBusinessDto(businessDto);
+        return userDto;
+    }
+
+    private static List<BankDetailsDto> getBankDetailsDtoList(Set<BankDetails> savedBankDetails) {
+        return savedBankDetails.stream()
+                .map(bankDetail -> {
+                    try {
+                        return ObjectMapperUtils.map(bankDetail, BankDetailsDto.class);
+                    } catch (ServerException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
+    }
+
+    private static List<AddressDto> getAddressDtos(Set<Address> savedAddressDetails) {
+        return savedAddressDetails.stream()
+                .map(address -> {
+                    try {
+                        return ObjectMapperUtils.map(address, AddressDto.class);
+                    } catch (ServerException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
     }
 
     public boolean isExistingUser(String phoneNo){
@@ -88,7 +136,7 @@ public class UserService implements UserDetailsService {
         return userMayBe.isPresent();
     }
 
-    public boolean isAlreadyRegister(RegisterUser request) {
+    public boolean isAlreadyRegister(SignUpRequest request) {
         return (
                 existingContactNo(request.getPhoneNo()) ||
                         existingEmail(request.getEmail())

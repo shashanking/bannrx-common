@@ -66,7 +66,7 @@ public abstract class Persist {
         var principle = SecurityUtils.getLoggedInUser();
         if (principle instanceof User user)
             return user.getEmail();
-        return null;
+        return "default";
     }
 
     public String setDefaultModifiedBy(){

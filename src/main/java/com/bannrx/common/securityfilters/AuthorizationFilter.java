@@ -17,7 +17,6 @@ import rklab.utility.services.JwtConfiguration;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
